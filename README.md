@@ -24,6 +24,9 @@ jobs:
 `.github/`, `.screenshots/` или `README.md`. Пропущенный релиз можно
 запустить вручную: Actions → Addon release → Run workflow.
 
+Релиз не создаётся, пока в `addon-meta.yml` пустой `name` или
+`directories: []` (незаполненный шаблон `repository-template`).
+
 Релиз: тег `<sha7>-<ГГГГММДДЧЧММ>` (UTC), название
 `<repo> - <ГГГГ-ММ-ДД ЧЧ:ММ>`, архив `<repo>.zip` без служебных файлов
 (`.git*`, `.github/`, `.screenshots/`, `.vscode/`, `.idea/`, `README.md`,

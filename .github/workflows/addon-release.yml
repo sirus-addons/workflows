@@ -15,11 +15,21 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: Check pack
+        id: pack
+        run: |
+          if [ -f addon-meta.yml ] && grep -Eq '^name:[[:space:]]*[^[:space:]]' addon-meta.yml && ! grep -Eq '^directories:[[:space:]]*\[[[:space:]]*\][[:space:]]*$' addon-meta.yml; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::addon-meta.yml is not filled in yet, no release"
+          fi
       - name: Build zip
+        if: steps.pack.outputs.ready == 'true'
         run: |
           repo="${GITHUB_REPOSITORY#*/}"
           zip -r "$repo" . -x '*.git*' 'README.md' 'addon-meta.yml' '.travis.yml' '.github/*' '.screenshots/*' '.vscode/*' '.idea/*'
       - name: Create release
+        if: steps.pack.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
