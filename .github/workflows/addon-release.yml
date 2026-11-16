@@ -1,0 +1,30 @@
+name: Addon release
+'on':
+  workflow_call:
+jobs:
+  release:
+    name: Create release
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Build zip
+        run: |
+          repo="${GITHUB_REPOSITORY#*/}"
+          zip -r "$repo" . -x '*.git*' 'README.md' 'addon-meta.yml' '.travis.yml' '.github/*' '.screenshots/*' '.vscode/*' '.idea/*'
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          repo="${GITHUB_REPOSITORY#*/}"
+          now=$(date -u +%s)
+          tag="$(git rev-parse --short HEAD)-$(date -u -d "@$now" +'%Y%m%d%H%M')"
+          title="$repo - $(date -u -d "@$now" +'%Y-%m-%d %H:%M')"
+          gh release create "$tag" "$repo.zip" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$title" --notes "" --latest
